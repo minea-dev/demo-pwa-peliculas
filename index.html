@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Demo Películas</title>
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+    <link rel="stylesheet" href="css/nprogress.css">
+    <!-- JavaScript -->
+    <script src="https://unpkg.com/vue@3"></script>
+    <script defer src="js/main.js"></script>
+    <script src="js/nprogress.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <br>
+        <main id="app">
+            <div class="block">
+                <h1 class="title">Películas</h1>
+                <br>
+                <button class="button" @click="verFormAnyadir = !verFormAnyadir">Añadir película</button>
+                <br>
+            </div>
+            <div class="block" v-if="verFormAnyadir">
+                <form>
+                    <div class="field">
+                        <label class="label">Escribe una película:</label>
+                        <div class="control">
+                            <input v-model="nuevoNombre" type="text" class="input" placeholder="Nombre de la película">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Duración de la película:</label>
+                        <div class="control">
+                            <input v-model="nuevaDuracion" type="number" class="input" placeholder="Duración en minutos" min="1">
+                        </div>
+                    </div>
+                    <div class="control">
+                        <button class="button is-primary" @click.prevent="addPelicula">Guardar</button>
+                    </div>
+                </form>
+            </div>
+            <br>
+            <div class="block">
+                <ul>
+                    <li v-for="pelicula in peliculas" :ref="'pelicula-' + pelicula.id">
+                        <!-- Nombre -->
+                        <input v-if="peliculasEditables == pelicula.id" v-model="editarNombre" type="text" class="input is-small is-rounded">
+                        <span v-else="peliculasEditables != pelicula.id"><strong>Título:</strong> {{pelicula.name}} | </span>
+                        <!-- Duración-->
+                        <input v-if="peliculasEditables == pelicula.id" v-model="editarDuracion" type="number" class="input is-small is-rounded" min="1">
+                        <span v-else="peliculasEditables != pelicula.id"><strong>Duración:</strong> {{pelicula.duration}}min</span>
+                        <!-- Botón editar -->
+                        <button class="button is-small is-warning is-light is-outlined is-rounded" v-if="peliculasEditables != pelicula.id" :disabled="isLoading" @click="verEditarPelicula(pelicula.id)">Editar</button>
+                        <!-- Botón guardar-->
+                        <button class="button is-small is-primary is-light is-outlined is-rounded" @click="editarPelicula(pelicula.id)" v-else :disabled="isLoading">Guardar</button>
+                        <!-- Botón borrar -->
+                        <button class="delete" :disabled="isLoading || peliculasEditables == pelicula.id" @click="deletePelicula(pelicula.id)"></button>
+                    </li>
+                </ul>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>
