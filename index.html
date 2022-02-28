@@ -6,6 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PWA Demo Películas</title>
+    <link rel="manifest" href="manifest.json" />
     <!-- CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
     <link rel="stylesheet" href="css/nprogress.css">
@@ -46,20 +47,40 @@
             </div>
             <br>
             <div class="block">
+                <table width="100%">
+                    <tr>
+                        <th>Título</th>
+                        <th>Duración</th>
+                        <th>Acciones</th>
+                    </tr>
+                    <tr v-for="pelicula in peliculas" :ref="'pelicula-' + pelicula.id">
+                        <td>
+                            <!-- Nombre -->
+                            <input v-if="peliculasEditables == pelicula.id" v-model="editarNombre" type="text" class="input is-small is-rounded">
+                            <span v-else="peliculasEditables != pelicula.id"> {{pelicula.name}}</span>
+                        </td>
+                        <td>
+                            <!-- Duración-->
+                            <input v-if="peliculasEditables == pelicula.id" v-model="editarDuracion" type="number" class="input is-small is-rounded" min="1">
+                            <span v-else="peliculasEditables != pelicula.id"> {{pelicula.duration}}min</span>
+                        </td>
+                        <td>
+                            <!-- Botón editar -->
+                            <button class="button is-small is-warning is-light is-outlined is-rounded" v-if="peliculasEditables != pelicula.id" :disabled="isLoading" @click="verEditarPelicula(pelicula.id)">Editar</button>
+                            <!-- Botón guardar-->
+                            <button class="button is-small is-primary is-light is-outlined is-rounded" @click="editarPelicula(pelicula.id)" v-else :disabled="isLoading">Guardar</button>
+                            <!-- Botón borrar -->
+                            <button class="delete" :disabled="isLoading || peliculasEditables == pelicula.id" @click="deletePelicula(pelicula.id)"></button>
+                        </td>
+                    </tr>
+                </table>
                 <ul>
-                    <li v-for="pelicula in peliculas" :ref="'pelicula-' + pelicula.id">
-                        <!-- Nombre -->
-                        <input v-if="peliculasEditables == pelicula.id" v-model="editarNombre" type="text" class="input is-small is-rounded">
-                        <span v-else="peliculasEditables != pelicula.id"><strong>Título:</strong> {{pelicula.name}} | </span>
-                        <!-- Duración-->
-                        <input v-if="peliculasEditables == pelicula.id" v-model="editarDuracion" type="number" class="input is-small is-rounded" min="1">
-                        <span v-else="peliculasEditables != pelicula.id"><strong>Duración:</strong> {{pelicula.duration}}min</span>
-                        <!-- Botón editar -->
-                        <button class="button is-small is-warning is-light is-outlined is-rounded" v-if="peliculasEditables != pelicula.id" :disabled="isLoading" @click="verEditarPelicula(pelicula.id)">Editar</button>
-                        <!-- Botón guardar-->
-                        <button class="button is-small is-primary is-light is-outlined is-rounded" @click="editarPelicula(pelicula.id)" v-else :disabled="isLoading">Guardar</button>
-                        <!-- Botón borrar -->
-                        <button class="delete" :disabled="isLoading || peliculasEditables == pelicula.id" @click="deletePelicula(pelicula.id)"></button>
+                    <li>
+
+
+
+
+
                     </li>
                 </ul>
             </div>
