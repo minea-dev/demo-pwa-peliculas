@@ -13,6 +13,7 @@
     <!-- CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
     <link rel="stylesheet" href="css/nprogress.css">
+    <link rel="stylesheet" href="css/main.css">
     <!-- JavaScript -->
     <script src="https://unpkg.com/vue@3"></script>
     <script defer src="js/main.js"></script>
@@ -56,7 +57,7 @@
                         <th>Duración</th>
                         <th>Acciones</th>
                     </tr>
-                    <tr v-for="pelicula in peliculas" :ref="'pelicula-' + pelicula.id">
+                    <tr v-for="pelicula in peliculas" :ref="'pelicula-' + pelicula.id" :class="{'desenfoque' : isLoading}">
                         <td>
                             <!-- Nombre -->
                             <input v-if="peliculasEditables == pelicula.id" v-model="editarNombre" type="text" class="input is-small is-rounded">
@@ -79,8 +80,8 @@
                 </table>
             </div>
             <div class="block">
-                <button class="button is-rounded" @click="pag = pag -1" v-if="pag != 1">👈</button>
-                <button class="button is-rounded" @click="pag = pag +1">👉</button>
+                <button class="button is-rounded" @click="pag = pag - 1" v-if="pag > 1" :disabled="isLoading">👈</button>
+                <button class="button is-rounded" @click="pag = pag +1" v-if="pag < maxPags" :disabled="isLoading">👉</button>
             </div>
         </main>
     </div>

@@ -6,7 +6,6 @@ const headers = {
     'Range': '0-9'
 };
 
-
 Vue.createApp({
     data() {
         return {
@@ -16,6 +15,7 @@ Vue.createApp({
             nuevoNombre: '',
             nuevaDuracion: '',
             isLoading: false,
+            peliculasLength: 0,
             peliculasEditables: -1,
             editarNombre: '',
             editarDuracion: '',
@@ -23,11 +23,14 @@ Vue.createApp({
             pag: 1
         }
     },
+    computed: {
+        maxPags: function() {
+            return Math.ceil(this.peliculasLength / this.numeroResultadosPorPagina);
+        }
+    },
     methods: {
-        getHeader: function() {
-            // Página 1: 0*5 = 0
+        getHeaders: function() {
             const rangoInicio = (this.pag - 1) * this.numeroResultadosPorPagina;
-            // Rango inicio 0: 0 + 5 = 5  --- DEL 0 AL 5
             const rangoFinal = rangoInicio + this.numeroResultadosPorPagina;
             // Clono headers
             let headersNuevoRango = JSON.parse(JSON.stringify(headers));
@@ -35,9 +38,18 @@ Vue.createApp({
             headersNuevoRango.Range = `${rangoInicio}-${rangoFinal}`;
             return headersNuevoRango;
         },
+        getPeliculasLength: async function() {
+            // Obtengo mis headers y quito el Rango de paginar
+            const myHeaders = this.getHeaders();
+            myHeaders.Range = '';
+            // Pido la lista con todas las peliculas
+            const fetchPeliculas = await fetch(`${this.APIUrl}?select=*`, { headers: myHeaders });
+            const dataPeliculas = await fetchPeliculas.json();
+            this.peliculasLength = Math.ceil(dataPeliculas.length / this.numeroResultadosPorPagina);
+        },
         getPeliculas: async function() {
             this.isLoading = true;
-            const fetchPeliculas = await fetch(`${this.APIUrl}?select=*`, { headers: this.getHeader() });
+            const fetchPeliculas = await fetch(`${this.APIUrl}?select=*`, { headers: this.getHeaders() });
             this.peliculas = await fetchPeliculas.json();
             this.isLoading = false;
         },
@@ -45,25 +57,23 @@ Vue.createApp({
             this.isLoading = true;
             // Ocultar el formulario
             this.verFormAnyadir = false;
-            // Hacer el POST a la base de datos
-            await fetch(this.APIUrl, {
-                headers: this.getHeader(),
+            // Anyadir la pelicula a la base de datos
+            const fetchPeliculas = await fetch(this.APIUrl, {
+                headers: this.getHeaders(),
                 method: 'POST',
                 body: JSON.stringify({ "name": this.nuevoNombre, "duration": this.nuevaDuracion })
             });
-            // Reiniciamos variables
+            // Reiniciamos formulario
             this.nuevoNombre = '';
             this.nuevaDuracion = '';
-            // Obtenemos de nuevo las películas
+            // Obtenemos de nuevo las peliculas
             this.getPeliculas();
             this.isLoading = false;
         },
         deletePelicula: async function(id) {
-            // Borramos visualmente - para que en el retardo el usuario no le de a borrar más veces
-            //this.$refs[`pelicula-${id}`][0].remove(); -- No funciona bien
             // Borramos de la base de datos
             await fetch(`${this.APIUrl}?id=eq.${id}`, {
-                headers: this.getHeader(),
+                headers: this.getHeaders(),
                 method: 'DELETE'
             });
             this.getPeliculas();
@@ -71,22 +81,24 @@ Vue.createApp({
         verEditarPelicula: function(id) {
             // Mostramos el campo a editar
             this.peliculasEditables = id;
-            // Obtenemos la información
-            const peliculaEditar = this.peliculas.filter(pelicula => {
+            // Obtenemos la informacion
+            const peliculaAEditar = this.peliculas.filter(function(pelicula) {
                 return pelicula.id === id;
             })[0];
             // Mostramos datos
-            this.editarNombre = peliculaEditar.name;
-            this.editarDuracion = peliculaEditar.duration;
+            this.editarNombre = peliculaAEditar.name;
+            this.editarDuracion = peliculaAEditar.duration;
         },
         editarPelicula: async function(id) {
+            this.isLoading = true;
             this.peliculasEditables = -1;
-            await fetch(`${this.APIUrl}?id=eq.${id}`, {
-                headers: this.getHeader(),
+            const fetchPeliculas = await fetch(`${this.APIUrl}?id=eq.${id}`, {
+                headers: this.getHeaders(),
                 method: 'PATCH',
                 body: JSON.stringify({ "name": this.editarNombre, "duration": this.editarDuracion })
             });
             this.getPeliculas();
+            this.isLoading = false;
         }
     },
     watch: {
@@ -97,12 +109,13 @@ Vue.createApp({
                 NProgress.done();
             }
         },
-        // Cuando haya un cambio dentro de pag...
         pag(value) {
             this.getPeliculas();
+            this.getPeliculasLength();
         }
     },
     mounted: function() {
         this.getPeliculas();
-    },
+        this.getPeliculasLength();
+    }
 }).mount('#app')
